@@ -1,0 +1,81 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:"Poppins",sans-serif;
+}
+
+.history-page{
+    min-height:100vh;
+    background:linear-gradient(135deg,#020617,#0f172a,#1e3a8a);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:40px;
+}
+
+.history-container{
+    width:100%;
+    max-width:1000px;
+    background:#fff;
+    border-radius:20px;
+    padding:40px;
+    box-shadow:0 15px 35px rgba(0,0,0,.25);
+}
+
+.history-container h1{
+    text-align:center;
+    color:#0f172a;
+    margin-bottom:30px;
+    font-size:36px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+thead{
+    background:#2563eb;
+    color:#fff;
+}
+
+th,
+td{
+    padding:18px;
+    text-align:center;
+}
+
+tbody tr{
+    border-bottom:1px solid #e2e8f0;
+    transition:.3s;
+}
+
+tbody tr:hover{
+    background:#eff6ff;
+}
+
+tbody tr:last-child{
+    border-bottom:none;
+}
+
+@media(max-width:768px){
+
+.history-container{
+    padding:20px;
+}
+
+.history-container h1{
+    font-size:28px;
+}
+
+table{
+    font-size:14px;
+}
+
+th,
+td{
+    padding:10px;
+}
+
+}
