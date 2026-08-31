@@ -11,7 +11,7 @@ function Interview() {
   const difficulty =
     searchParams.get("difficulty") || "medium";
 
-  const API_URL = "http://localhost:8081";
+  const API_URL = "https://ai-backend-8-7moy.onrender.com";
 
   const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
