@@ -13,7 +13,7 @@ function AdminRegister() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const API_URL = "http://localhost:8081";
+  const API_URL = "https://ai-backend-8-7moy.onrender.com";
 
   const handleRegister = async (event) => {
     event.preventDefault();
