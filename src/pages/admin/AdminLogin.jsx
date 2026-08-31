@@ -11,7 +11,7 @@ function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const API_URL = "http://localhost:8081";
+  const API_URL = "https://ai-backend-8-7moy.onrender.com";
 
   // =========================================================
   // ADMIN LOGIN
