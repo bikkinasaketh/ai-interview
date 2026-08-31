@@ -29,22 +29,23 @@ function Topics() {
 
       <div className="topic-grid">
 
-        {
-          topics.map((topic,index)=>(
+        {topics.map((topic, index) => (
 
-            <Link
-              key={index}
-              to="/difficulty"
-              className="topic-card"
-            >
-              <h2>{topic}</h2>
+          <Link
+            key={index}
+            to={`/difficulty?topic=${encodeURIComponent(topic)}`}
+            className="topic-card"
+          >
 
-              <span>Start Practice →</span>
+            <h2>{topic}</h2>
 
-            </Link>
+            <span>
+              Start Practice →
+            </span>
 
-          ))
-        }
+          </Link>
+
+        ))}
 
       </div>
 

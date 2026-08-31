@@ -18,29 +18,83 @@ function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Form states
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const [loading, setLoading] = useState(false);
+
   const handleSignup = async (e) => {
+
     e.preventDefault();
 
-    // Password validation
+    // ============================================
+    // VALIDATION
+    // ============================================
+
+    if (!name.trim()) {
+      alert("Please enter your name!");
+      return;
+    }
+
+    if (!email.trim()) {
+      alert("Please enter your email!");
+      return;
+    }
+
+    if (!phone || phone.length !== 10) {
+      alert("Please enter a valid 10-digit mobile number!");
+      return;
+    }
+
+    if (!password) {
+      alert("Please enter a password!");
+      return;
+    }
+
+    if (password.length < 6) {
+      alert("Password must be at least 6 characters!");
+      return;
+    }
+
+    if (!confirmPassword) {
+      alert("Please confirm your password!");
+      return;
+    }
+
     if (password !== confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
 
-    // Mobile number validation
-    if (phone.length !== 10) {
-      alert("Please enter a valid 10-digit mobile number!");
-      return;
-    }
+    // ============================================
+    // REQUEST DATA
+    // ============================================
+
+    const signupData = {
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      password: password
+    };
+
+    console.log("SIGNUP REQUEST:", {
+      name: signupData.name,
+      email: signupData.email,
+      phone: signupData.phone,
+      passwordPresent: Boolean(signupData.password),
+      passwordLength: signupData.password.length
+    });
 
     try {
+
+      setLoading(true);
+
+      // ==========================================
+      // BACKEND REQUEST
+      // ==========================================
 
       const response = await fetch(
         "http://localhost:8081/api/auth/signup",
@@ -48,41 +102,132 @@ function Signup() {
           method: "POST",
 
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Accept": "application/json"
           },
 
-         body: JSON.stringify({
-  name: name,
-  email: email,
-  phone: phone,
-  password: password
-})
+          body: JSON.stringify(signupData)
         }
       );
 
-      const data = await response.json();
+      // ==========================================
+      // READ RESPONSE
+      // ==========================================
+
+      const responseText = await response.text();
+
+      let data = {};
+
+      try {
+
+        data = responseText
+          ? JSON.parse(responseText)
+          : {};
+
+      } catch (parseError) {
+
+        console.error(
+          "Unable to parse backend response:",
+          parseError
+        );
+
+        data = {
+          message: responseText
+        };
+      }
+
+      // ==========================================
+      // DEBUG
+      // ==========================================
+
+      console.log(
+        "SIGNUP HTTP STATUS:",
+        response.status
+      );
+
+      console.log(
+        "SIGNUP RESPONSE:",
+        JSON.stringify(
+          data,
+          null,
+          2
+        )
+      );
+
+      // ==========================================
+      // SUCCESS
+      // ==========================================
 
       if (response.ok) {
 
-        alert("Signup successful! 🎉");
+        alert(
+          "Signup successful! 🎉"
+        );
 
-        console.log(data);
+        // Clear form
+        setName("");
+        setEmail("");
+        setPhone("");
+        setPassword("");
+        setConfirmPassword("");
 
-        // Go to login page
+        // Go to login
         navigate("/login");
 
-      } else {
-
-        alert(data.message || "Signup failed!");
-
+        return;
       }
+
+      // ==========================================
+      // BACKEND ERROR
+      // ==========================================
+
+      let errorMessage =
+        data?.message ||
+        data?.error ||
+        data?.detail;
+
+      // Spring validation error
+      if (
+        !errorMessage &&
+        data?.errors &&
+        Array.isArray(data.errors)
+      ) {
+
+        errorMessage =
+          data.errors
+            .map(
+              (error) =>
+                error.defaultMessage ||
+                error.message ||
+                "Validation error"
+            )
+            .join("\n");
+      }
+
+      if (!errorMessage) {
+
+        errorMessage =
+          `Signup failed with HTTP ${response.status}`;
+      }
+
+      alert(
+        `❌ ${errorMessage}`
+      );
 
     } catch (error) {
 
-      console.error(error);
+      console.error(
+        "SIGNUP ERROR:",
+        error
+      );
 
-      alert("Backend connection failed!");
+      alert(
+        "❌ Backend connection failed! Make sure Spring Boot is running on port 8081."
+      );
 
+    } finally {
+
+      setLoading(false);
     }
   };
 
@@ -90,7 +235,9 @@ function Signup() {
 
     <div className="signup-container">
 
-      {/* LEFT SIDE */}
+      {/* ==========================================
+          LEFT SIDE
+      ========================================== */}
 
       <div className="signup-left">
 
@@ -133,13 +280,17 @@ function Signup() {
       </div>
 
 
-      {/* RIGHT SIDE */}
+      {/* ==========================================
+          RIGHT SIDE
+      ========================================== */}
 
       <div className="signup-right">
 
         <div className="signup-card">
 
-          <h2>Create Account 🚀</h2>
+          <h2>
+            Create Account 🚀
+          </h2>
 
           <p>
             Join AI Interview Coach Today
@@ -148,7 +299,9 @@ function Signup() {
 
           <form onSubmit={handleSignup}>
 
-            {/* NAME */}
+            {/* ======================================
+                NAME
+            ====================================== */}
 
             <div className="input-box">
 
@@ -167,7 +320,9 @@ function Signup() {
             </div>
 
 
-            {/* EMAIL */}
+            {/* ======================================
+                EMAIL
+            ====================================== */}
 
             <div className="input-box">
 
@@ -186,7 +341,9 @@ function Signup() {
             </div>
 
 
-            {/* PHONE */}
+            {/* ======================================
+                PHONE
+            ====================================== */}
 
             <div className="input-box">
 
@@ -197,16 +354,23 @@ function Signup() {
                 placeholder="Mobile Number"
                 value={phone}
                 onChange={(e) =>
-                  setPhone(e.target.value.replace(/\D/g, ""))
+                  setPhone(
+                    e.target.value.replace(
+                      /\D/g,
+                      ""
+                    )
+                  )
                 }
-                maxLength="10"
+                maxLength={10}
                 required
               />
 
             </div>
 
 
-            {/* PASSWORD */}
+            {/* ======================================
+                PASSWORD
+            ====================================== */}
 
             <div className="input-box">
 
@@ -221,8 +385,11 @@ function Signup() {
                 placeholder="Password"
                 value={password}
                 onChange={(e) =>
-                  setPassword(e.target.value)
+                  setPassword(
+                    e.target.value
+                  )
                 }
+                minLength={6}
                 required
               />
 
@@ -230,7 +397,9 @@ function Signup() {
                 type="button"
                 className="eye-btn"
                 onClick={() =>
-                  setShowPassword(!showPassword)
+                  setShowPassword(
+                    !showPassword
+                  )
                 }
               >
 
@@ -245,7 +414,9 @@ function Signup() {
             </div>
 
 
-            {/* CONFIRM PASSWORD */}
+            {/* ======================================
+                CONFIRM PASSWORD
+            ====================================== */}
 
             <div className="input-box">
 
@@ -264,6 +435,7 @@ function Signup() {
                     e.target.value
                   )
                 }
+                minLength={6}
                 required
               />
 
@@ -271,7 +443,9 @@ function Signup() {
                 type="button"
                 className="eye-btn"
                 onClick={() =>
-                  setShowConfirm(!showConfirm)
+                  setShowConfirm(
+                    !showConfirm
+                  )
                 }
               >
 
@@ -286,19 +460,28 @@ function Signup() {
             </div>
 
 
-            {/* SIGNUP BUTTON */}
+            {/* ======================================
+                SIGNUP BUTTON
+            ====================================== */}
 
             <button
               type="submit"
               className="signup-btn"
+              disabled={loading}
             >
-              Create Account
+
+              {loading
+                ? "Creating Account..."
+                : "Create Account"}
+
             </button>
 
           </form>
 
 
-          {/* LOGIN */}
+          {/* ========================================
+              LOGIN
+          ======================================== */}
 
           <p className="login-link">
 

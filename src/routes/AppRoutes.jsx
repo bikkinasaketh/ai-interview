@@ -16,6 +16,9 @@ import Profile from "../pages/Profile/Profile";
 import History from "../pages/History/History";
 import NotFound from "../pages/NotFound/NotFound";
 import Loading from "../pages/Loading/Loading";
+import Admin from "../pages/admin/Admin";
+import AdminLogin from "../pages/admin/AdminLogin";
+import AdminRegister from "../pages/admin/AdminRegister";
 function AppRoutes() {
   return (
     <Routes>
@@ -35,6 +38,20 @@ function AppRoutes() {
 <Route path="/history" element={<History />} />
 <Route path="*" element={<NotFound />} />
 <Route path="/loading" element={<Loading />} />
+<Route
+  path="/admin"
+  element={<Admin />}
+/>
+
+<Route
+  path="/admin/login"
+  element={<AdminLogin />}
+/>
+
+<Route
+  path="/admin/register"
+  element={<AdminRegister />}
+/>
 
 
     </Routes>

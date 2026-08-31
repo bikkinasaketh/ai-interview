@@ -20,58 +20,215 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
- const handleLogin = async (e) => {
+  // =========================================================
+  // USER LOGIN
+  // =========================================================
 
-  e.preventDefault();
+  const handleLogin = async (e) => {
 
-  try {
+    e.preventDefault();
 
-    const response = await fetch(
-      "http://localhost:8081/api/auth/login",
-      {
-        method: "POST",
+    try {
 
-        headers: {
-          "Content-Type": "application/json"
-        },
+      const response = await fetch(
+        "http://localhost:8081/api/auth/login",
+        {
+          method: "POST",
 
-        body: JSON.stringify({
-          email: email,
-          password: password
-        })
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify({
+            email: email.trim(),
+            password: password
+          })
+        }
+      );
+
+      // =======================================================
+      // LOGIN SUCCESS
+      // =======================================================
+
+      if (response.ok) {
+
+        const data = await response.json();
+
+        console.log(
+          "Login user data:",
+          data
+        );
+
+
+        // =====================================================
+        // CHECK JWT TOKEN
+        // =====================================================
+
+        if (!data.token) {
+
+          console.error(
+            "JWT token was not returned:",
+            data
+          );
+
+          alert(
+            "Login succeeded, but JWT token was not returned by backend."
+          );
+
+          return;
+        }
+
+
+        // =====================================================
+        // SAVE COMPLETE USER
+        // =====================================================
+
+        localStorage.setItem(
+          "user",
+          JSON.stringify(data)
+        );
+
+
+        // =====================================================
+        // SAVE USER ID
+        // =====================================================
+
+        if (data.id) {
+
+          localStorage.setItem(
+            "userId",
+            String(data.id)
+          );
+
+          console.log(
+            "Saved PostgreSQL userId:",
+            data.id
+          );
+
+        } else {
+
+          console.error(
+            "Login response does not contain user id:",
+            data
+          );
+
+          alert(
+            "Login succeeded, but user ID was not returned by backend."
+          );
+
+          return;
+        }
+
+
+        // =====================================================
+        // SAVE JWT TOKEN
+        // =====================================================
+
+        localStorage.setItem(
+          "userToken",
+          data.token
+        );
+
+        console.log(
+          "User JWT token saved:",
+          Boolean(
+            localStorage.getItem(
+              "userToken"
+            )
+          )
+        );
+
+
+        // =====================================================
+        // CLEAR OLD INTERVIEW DATA
+        // =====================================================
+
+        localStorage.removeItem(
+          "interviewAnswers"
+        );
+
+        localStorage.removeItem(
+          "interviewScore"
+        );
+
+        localStorage.removeItem(
+          "currentInterviewCounted"
+        );
+
+
+        // =====================================================
+        // SUCCESS
+        // =====================================================
+
+        alert(
+          "✅ Login Successful!"
+        );
+
+        navigate("/profile");
+
+      } else {
+
+        // =====================================================
+        // LOGIN FAILED
+        // =====================================================
+
+        let errorMessage =
+          "Invalid email or password";
+
+        try {
+
+          const errorData =
+            await response.json();
+
+          if (errorData?.message) {
+
+            errorMessage =
+              errorData.message;
+
+          } else if (errorData?.error) {
+
+            errorMessage =
+              errorData.error;
+          }
+
+        } catch (error) {
+
+          console.error(
+            "Unable to read login error:",
+            error
+          );
+        }
+
+        alert(
+          `❌ ${errorMessage}`
+        );
       }
-    );
 
-    if (response.ok) {
+    } catch (error) {
 
-      const data = await response.json();
+      console.error(
+        "Login error:",
+        error
+      );
 
-      // Save logged-in user details
-      localStorage.setItem("user", JSON.stringify(data));
-
-      alert("✅ Login Successful!");
-
-      navigate("/profile");
-
-    } else {
-
-      alert("❌ Invalid email or password");
-
+      alert(
+        "❌ Backend connection failed!"
+      );
     }
+  };
 
-  } catch (error) {
 
-    console.error(error);
+  // =========================================================
+  // UI
+  // =========================================================
 
-    alert("❌ Backend connection failed!");
-
-  }
-};
   return (
 
     <div className="login-container">
 
-      {/* Left Side */}
+      {/* =====================================================
+          LEFT SIDE
+          ===================================================== */}
 
       <div className="login-left">
 
@@ -114,21 +271,32 @@ function Login() {
       </div>
 
 
-      {/* Right Side */}
+      {/* =====================================================
+          RIGHT SIDE
+          ===================================================== */}
 
       <div className="login-right">
 
         <div className="login-card">
 
-          <h2>Welcome Back 👋</h2>
+          <h2>
+            Welcome Back 👋
+          </h2>
 
           <p>
             Login to continue your interview preparation.
           </p>
 
+
+          {/* =================================================
+              LOGIN FORM
+              ================================================= */}
+
           <form onSubmit={handleLogin}>
 
-            {/* Email */}
+            {/* =================================================
+                EMAIL
+                ================================================= */}
 
             <div className="input-box">
 
@@ -139,7 +307,9 @@ function Login() {
                 placeholder="Enter Email"
                 value={email}
                 onChange={(e) =>
-                  setEmail(e.target.value)
+                  setEmail(
+                    e.target.value
+                  )
                 }
                 required
               />
@@ -147,7 +317,9 @@ function Login() {
             </div>
 
 
-            {/* Password */}
+            {/* =================================================
+                PASSWORD
+                ================================================= */}
 
             <div className="input-box">
 
@@ -162,7 +334,9 @@ function Login() {
                 placeholder="Enter Password"
                 value={password}
                 onChange={(e) =>
-                  setPassword(e.target.value)
+                  setPassword(
+                    e.target.value
+                  )
                 }
                 required
               />
@@ -171,7 +345,9 @@ function Login() {
                 type="button"
                 className="eye-btn"
                 onClick={() =>
-                  setShowPassword(!showPassword)
+                  setShowPassword(
+                    !showPassword
+                  )
                 }
               >
 
@@ -186,13 +362,17 @@ function Login() {
             </div>
 
 
-            {/* Options */}
+            {/* =================================================
+                OPTIONS
+                ================================================= */}
 
             <div className="options">
 
               <label>
 
-                <input type="checkbox" />
+                <input
+                  type="checkbox"
+                />
 
                 Remember Me
 
@@ -205,7 +385,9 @@ function Login() {
             </div>
 
 
-            {/* Login Button */}
+            {/* =================================================
+                LOGIN BUTTON
+                ================================================= */}
 
             <button
               type="submit"
@@ -217,22 +399,54 @@ function Login() {
           </form>
 
 
+          {/* =================================================
+              DIVIDER
+              ================================================= */}
+
           <div className="divider">
-            <span>OR</span>
+
+            <span>
+              OR
+            </span>
+
           </div>
 
 
-          <button className="google-btn">
+          {/* =================================================
+              GOOGLE
+              ================================================= */}
+
+          <button
+            type="button"
+            className="google-btn"
+          >
+
             <FaGoogle />
+
             Continue with Google
+
           </button>
 
 
-          <button className="github-btn">
+          {/* =================================================
+              GITHUB
+              ================================================= */}
+
+          <button
+            type="button"
+            className="github-btn"
+          >
+
             <FaGithub />
+
             Continue with GitHub
+
           </button>
 
+
+          {/* =================================================
+              SIGN UP
+              ================================================= */}
 
           <p className="signup-link">
 
