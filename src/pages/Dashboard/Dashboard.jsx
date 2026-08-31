@@ -10,6 +10,11 @@ function Dashboard() {
 
   useEffect(() => {
     const loadDashboard = async () => {
+
+      // =========================================================
+      // GET SAVED USER
+      // =========================================================
+
       const savedUser = localStorage.getItem("user");
 
       if (!savedUser) {
@@ -33,6 +38,10 @@ function Dashboard() {
         return;
       }
 
+      // =========================================================
+      // CHECK USER ID
+      // =========================================================
+
       if (!user.id) {
         setError(
           "User information is missing. Please login again."
@@ -42,10 +51,74 @@ function Dashboard() {
         return;
       }
 
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/interviews/user/${user.id}`
+      // =========================================================
+      // GET JWT TOKEN
+      // =========================================================
+
+      const token =
+        user.token ||
+        localStorage.getItem("token");
+
+      console.log(
+        "Dashboard userId:",
+        user.id
+      );
+
+      console.log(
+        "Dashboard JWT available:",
+        !!token
+      );
+
+      if (!token) {
+        setError(
+          "Your login session is invalid or expired. Please login again."
         );
+
+        setLoading(false);
+        return;
+      }
+
+      try {
+
+        // =======================================================
+        // LOAD INTERVIEW HISTORY
+        // =======================================================
+
+        const response = await fetch(
+          `${API_BASE_URL}/api/interviews/user/${user.id}`,
+          {
+            method: "GET",
+
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            }
+          }
+        );
+
+        console.log(
+          "Dashboard interview history status:",
+          response.status
+        );
+
+        // =======================================================
+        // UNAUTHORIZED
+        // =======================================================
+
+        if (
+          response.status === 401 ||
+          response.status === 403
+        ) {
+
+          throw new Error(
+            "Your login session is invalid or expired. Please login again."
+          );
+        }
+
+        // =======================================================
+        // OTHER ERROR
+        // =======================================================
 
         if (!response.ok) {
           throw new Error(
@@ -53,7 +126,21 @@ function Dashboard() {
           );
         }
 
-        const interviewData = await response.json();
+        // =======================================================
+        // RESPONSE
+        // =======================================================
+
+        const interviewData =
+          await response.json();
+
+        console.log(
+          "Dashboard interview history:",
+          interviewData
+        );
+
+        // =======================================================
+        // CHECK ARRAY
+        // =======================================================
 
         if (!Array.isArray(interviewData)) {
           throw new Error(
@@ -62,32 +149,42 @@ function Dashboard() {
         }
 
         setInterviews(interviewData);
+
       } catch (err) {
-        console.error("Dashboard error:", err);
+
+        console.error(
+          "Dashboard error:",
+          err
+        );
 
         setError(
           err.message ||
-            "Unable to load dashboard data."
+          "Unable to load dashboard data."
         );
+
       } finally {
+
         setLoading(false);
       }
     };
 
     loadDashboard();
+
   }, []);
 
   // =========================================================
   // DASHBOARD CALCULATIONS
   // =========================================================
 
-  const interviewsCompleted = interviews.length;
+  const interviewsCompleted =
+    interviews.length;
 
   const bestScore =
     interviews.length > 0
       ? Math.max(
-          ...interviews.map((interview) =>
-            Number(interview.score) || 0
+          ...interviews.map(
+            (interview) =>
+              Number(interview.score) || 0
           )
         )
       : 0;
@@ -104,26 +201,43 @@ function Dashboard() {
         )
       : 0;
 
-  const topicsPracticed = useMemo(() => {
-    const topics = interviews
-      .map((interview) => interview.topic)
-      .filter(
-        (topic) =>
-          topic &&
-          typeof topic === "string"
-      )
-      .map((topic) => topic.trim())
-      .filter((topic) => topic.length > 0);
+  const topicsPracticed =
+    useMemo(() => {
 
-    return new Set(topics).size;
-  }, [interviews]);
+      const topics =
+        interviews
+          .map(
+            (interview) =>
+              interview.topic
+          )
+          .filter(
+            (topic) =>
+              topic &&
+              typeof topic === "string"
+          )
+          .map(
+            (topic) =>
+              topic.trim()
+          )
+          .filter(
+            (topic) =>
+              topic.length > 0
+          );
+
+      return new Set(topics).size;
+
+    }, [interviews]);
 
   const latestInterview =
     interviews.length > 0
       ? [...interviews].sort(
           (a, b) =>
-            new Date(b.completedAt || 0) -
-            new Date(a.completedAt || 0)
+            new Date(
+              b.completedAt || 0
+            ) -
+            new Date(
+              a.completedAt || 0
+            )
         )[0]
       : null;
 
@@ -132,13 +246,18 @@ function Dashboard() {
   // =========================================================
 
   if (loading) {
+
     return (
       <section className="dashboard">
-        <h1>Dashboard</h1>
+
+        <h1>
+          Dashboard
+        </h1>
 
         <p>
           Loading dashboard...
         </p>
+
       </section>
     );
   }
@@ -148,11 +267,18 @@ function Dashboard() {
   // =========================================================
 
   if (error) {
+
     return (
       <section className="dashboard">
-        <h1>Dashboard</h1>
 
-        <p>{error}</p>
+        <h1>
+          Dashboard
+        </h1>
+
+        <p>
+          {error}
+        </p>
+
       </section>
     );
   }
@@ -164,12 +290,18 @@ function Dashboard() {
   return (
     <section className="dashboard">
 
-      <h1>Dashboard</h1>
+      <h1>
+        Dashboard
+      </h1>
 
       <div className="dashboard-grid">
 
-        {/* Interviews Completed */}
+        {/* =====================================================
+            INTERVIEWS COMPLETED
+        ====================================================== */}
+
         <div className="card">
+
           <h2>
             {interviewsCompleted}
           </h2>
@@ -177,10 +309,15 @@ function Dashboard() {
           <p>
             Interviews Completed
           </p>
+
         </div>
 
-        {/* Best Score */}
+        {/* =====================================================
+            BEST SCORE
+        ====================================================== */}
+
         <div className="card">
+
           <h2>
             {bestScore}%
           </h2>
@@ -188,10 +325,15 @@ function Dashboard() {
           <p>
             Best Score
           </p>
+
         </div>
 
-        {/* Topics Practiced */}
+        {/* =====================================================
+            TOPICS PRACTICED
+        ====================================================== */}
+
         <div className="card">
+
           <h2>
             {topicsPracticed}
           </h2>
@@ -199,10 +341,15 @@ function Dashboard() {
           <p>
             Topics Practiced
           </p>
+
         </div>
 
-        {/* Average Score */}
+        {/* =====================================================
+            AVERAGE SCORE
+        ====================================================== */}
+
         <div className="card">
+
           <h2>
             {averageScore}%
           </h2>
@@ -210,12 +357,17 @@ function Dashboard() {
           <p>
             Average Score
           </p>
+
         </div>
 
       </div>
 
-      {/* Latest Interview */}
+      {/* =======================================================
+          LATEST INTERVIEW
+      ======================================================= */}
+
       {latestInterview && (
+
         <div className="interview-history">
 
           <h2>
@@ -274,7 +426,10 @@ function Dashboard() {
         </div>
       )}
 
-      {/* Interview History */}
+      {/* =======================================================
+          INTERVIEW HISTORY
+      ======================================================= */}
+
       <div className="interview-history">
 
         <h2>
@@ -291,57 +446,59 @@ function Dashboard() {
 
           <div className="history-list">
 
-            {interviews.map((interview) => (
+            {interviews.map(
+              (interview) => (
 
-              <div
-                className="history-item"
-                key={interview.id}
-              >
+                <div
+                  className="history-item"
+                  key={interview.id}
+                >
 
-                <div>
+                  <div>
 
-                  <h3>
-                    {interview.topic ||
-                      `Interview #${interview.id}`}
-                  </h3>
+                    <h3>
+                      {interview.topic ||
+                        `Interview #${interview.id}`}
+                    </h3>
 
-                  <p>
-                    Difficulty:{" "}
-                    {interview.difficulty ||
-                      "N/A"}
-                  </p>
+                    <p>
+                      Difficulty:{" "}
+                      {interview.difficulty ||
+                        "N/A"}
+                    </p>
 
-                  <p>
-                    Questions:{" "}
-                    {interview.totalQuestions ||
-                      0}
-                  </p>
+                    <p>
+                      Questions:{" "}
+                      {interview.totalQuestions ||
+                        0}
+                    </p>
 
-                  <p>
-                    Completed:{" "}
-                    {interview.completedAt
-                      ? new Date(
-                          interview.completedAt
-                        ).toLocaleString()
-                      : "N/A"}
-                  </p>
+                    <p>
+                      Completed:{" "}
+                      {interview.completedAt
+                        ? new Date(
+                            interview.completedAt
+                          ).toLocaleString()
+                        : "N/A"}
+                    </p>
+
+                  </div>
+
+                  <div className="history-score">
+
+                    <strong>
+                      {Number(
+                        interview.score
+                      ) || 0}
+                      %
+                    </strong>
+
+                  </div>
 
                 </div>
 
-                <div className="history-score">
-
-                  <strong>
-                    {Number(
-                      interview.score
-                    ) || 0}
-                    %
-                  </strong>
-
-                </div>
-
-              </div>
-
-            ))}
+              )
+            )}
 
           </div>
 
@@ -349,7 +506,10 @@ function Dashboard() {
 
       </div>
 
-      {/* Practice Time */}
+      {/* =======================================================
+          PRACTICE TIME
+      ======================================================= */}
+
       <div className="interview-history">
 
         <h2>
