@@ -1,7 +1,7 @@
 import "./Dashboard.css";
 import { useEffect, useMemo, useState } from "react";
 
-const API_BASE_URL = "http://localhost:8081";
+const API_BASE_URL = "https://ai-backend-8-7moy.onrender.com";
 
 function Dashboard() {
   const [interviews, setInterviews] = useState([]);
