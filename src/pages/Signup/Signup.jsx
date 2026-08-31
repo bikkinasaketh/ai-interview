@@ -97,7 +97,7 @@ function Signup() {
       // ==========================================
 
       const response = await fetch(
-        "http://localhost:8081/api/auth/signup",
+        "https://ai-backend-8-7moy.onrender.com/api/auth/signup",
         {
           method: "POST",
 
